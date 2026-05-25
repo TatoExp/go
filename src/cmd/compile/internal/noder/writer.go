@@ -2025,6 +2025,10 @@ func (w *writer) expr(expr syntax.Expr) {
 		w.exprType(iface, expr.Type)
 		w.rtype(iface)
 
+	case *syntax.TryExpr:
+		w.Code(exprTry)
+		w.expr(expr.X)
+
 	case *syntax.Operation:
 		if expr.Y == nil {
 			w.Code(exprUnaryOp)

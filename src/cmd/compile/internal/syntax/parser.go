@@ -1215,6 +1215,13 @@ loop:
 			t.ArgList, t.HasDots = p.argList()
 			x = t
 
+		case _Question:
+			p.next()
+			t := new(TryExpr)
+			t.pos = pos
+			t.X = x
+			x = t
+
 		case _Lbrace:
 			// operand may have returned a parenthesized complit
 			// type; accept it but complain if we have a complit
@@ -1258,7 +1265,7 @@ loop:
 // isValue reports whether x syntactically must be a value (and not a type) expression.
 func isValue(x Expr) bool {
 	switch x := x.(type) {
-	case *BasicLit, *CompositeLit, *FuncLit, *SliceExpr, *AssertExpr, *TypeSwitchGuard, *CallExpr:
+	case *BasicLit, *CompositeLit, *FuncLit, *SliceExpr, *AssertExpr, *TypeSwitchGuard, *CallExpr, *TryExpr:
 		return true
 	case *Operation:
 		return x.Op != Mul || x.Y != nil // *T may be a type

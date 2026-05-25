@@ -308,6 +308,7 @@ const (
 	OGETG        // runtime.getg() (read g pointer)
 	OGETCALLERSP // internal/runtime/sys.GetCallerSP() (stack pointer in caller frame)
 
+	OTRY          // try operator ?
 	OEND
 )
 

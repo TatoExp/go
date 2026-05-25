@@ -2378,6 +2378,10 @@ func (r *reader) expr() (res ir.Node) {
 		}
 		return typecheck.Expr(ir.NewTypeAssertExpr(pos, x, typ.Type()))
 
+	case exprTry:
+		x := r.expr()
+		return typecheck.Expr(ir.NewUnaryExpr(x.Pos(), ir.OTRY, x))
+
 	case exprUnaryOp:
 		op := r.op()
 		pos := r.pos()

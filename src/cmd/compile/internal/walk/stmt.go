@@ -7,7 +7,71 @@ package walk
 import (
 	"cmd/compile/internal/base"
 	"cmd/compile/internal/ir"
+	"cmd/compile/internal/typecheck"
+	"cmd/compile/internal/types"
 )
+
+func walkTry(n *ir.UnaryExpr) ir.Node {
+	pos := n.Pos()
+	fn := ir.CurFunc
+	results := fn.Type().Results()
+	if len(results) == 0 {
+		base.FatalfAt(pos, "try operator in function with no return values")
+	}
+
+	var stmts ir.Nodes
+	var errVar ir.Node
+
+	switch call := n.X.(type) {
+	case *ir.CallExpr:
+		fntype := call.Fun.Type()
+		if fntype.NumResults() != len(results) {
+			base.FatalfAt(pos, "try operator: result count mismatch")
+		}
+		var lhs ir.Nodes
+		for i := 0; i < fntype.NumResults(); i++ {
+			tmp := typecheck.TempAt(pos, fn, fntype.Result(i).Type)
+			tmp.SetTypecheck(1)
+			stmts = append(stmts, ir.NewDecl(pos, ir.ODCL, tmp))
+			lhs = append(lhs, tmp)
+		}
+		errVar = lhs[len(lhs)-1]
+		as := ir.NewAssignListStmt(pos, ir.OAS2FUNC, []ir.Node(lhs), []ir.Node{call})
+		as.SetTypecheck(1)
+		stmts = append(stmts, as)
+
+	case *ir.InlinedCallExpr:
+		if len(call.ReturnVars) != len(results) {
+			base.FatalfAt(pos, "try operator: result count mismatch")
+		}
+		errVar = call.ReturnVars[len(call.ReturnVars)-1]
+
+	default:
+		base.FatalfAt(pos, "try operator requires function call")
+	}
+
+	nilNode := ir.NewNilExpr(pos, errVar.Type())
+	nilNode.SetTypecheck(1)
+	errNil := ir.NewBinaryExpr(pos, ir.ONE, errVar, nilNode)
+	errNil.SetType(types.Types[types.TBOOL])
+	errNil.SetTypecheck(1)
+
+	var retResults ir.Nodes
+	for i := 0; i < len(results)-1; i++ {
+		retResults = append(retResults, ir.NewZero(pos, results[i].Type))
+	}
+	retResults = append(retResults, errVar)
+	ret := ir.NewReturnStmt(pos, []ir.Node(retResults))
+	ret.SetTypecheck(1)
+
+	ifStmt := ir.NewIfStmt(pos, errNil, []ir.Node{ret}, nil)
+	ifStmt.SetTypecheck(1)
+	stmts = append(stmts, ifStmt)
+
+	blk := ir.NewBlockStmt(pos, stmts)
+	blk.SetTypecheck(1)
+	return blk
+}
 
 // The result of walkStmt MUST be assigned back to n, e.g.
 //
@@ -134,6 +198,14 @@ func walkStmt(n ir.Node) ir.Node {
 	case ir.ORETURN:
 		n := n.(*ir.ReturnStmt)
 		return walkReturn(n)
+
+	case ir.OTRY:
+		n := n.(*ir.UnaryExpr)
+		blk := walkTry(n)
+		if b, ok := blk.(*ir.BlockStmt); ok {
+			walkStmtList(b.List)
+		}
+		return blk
 
 	case ir.OTAILCALL:
 		n := n.(*ir.TailCallStmt)

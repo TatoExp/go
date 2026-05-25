@@ -47,6 +47,8 @@ func StartPos(n Node) Pos {
 		// case *SliceExpr:
 		case *AssertExpr:
 			m = n.X
+		case *TryExpr:
+			m = n.X
 		case *TypeSwitchGuard:
 			if n.Lhs != nil {
 				m = n.Lhs
@@ -202,6 +204,8 @@ func EndPos(n Node) Pos {
 			m = n.X
 		case *AssertExpr:
 			m = n.Type
+		case *TryExpr:
+			m = n.X
 		case *TypeSwitchGuard:
 			m = n.X
 		case *Operation:

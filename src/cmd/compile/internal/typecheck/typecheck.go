@@ -348,6 +348,13 @@ func typecheck1(n ir.Node, top int) ir.Node {
 	case ir.OCOMPLIT:
 		return tcCompLit(n.(*ir.CompLitExpr))
 
+	case ir.OTRY:
+		n := n.(*ir.UnaryExpr)
+		n.X = Expr(n.X)
+		n.SetTypecheck(1)
+		ir.CurFunc.Pragma |= ir.Noinline
+		return n
+
 	case ir.OXDOT, ir.ODOT:
 		n := n.(*ir.SelectorExpr)
 		return tcDot(n, top)

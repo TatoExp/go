@@ -90,6 +90,7 @@ var OpNames = []string{
 	OUNSAFESLICEDATA:  "unsafe.SliceData",
 	OUNSAFESTRING:     "unsafe.String",
 	OUNSAFESTRINGDATA: "unsafe.StringData",
+	OTRY:              "?",
 	OXOR:              "^",
 }
 

@@ -419,6 +419,9 @@ func (p *printer) printRawNode(n Node) {
 	case *AssertExpr:
 		p.print(n.X, _Dot, _Lparen, n.Type, _Rparen)
 
+	case *TryExpr:
+		p.print(n.X, _Question)
+
 	case *TypeSwitchGuard:
 		if n.Lhs != nil {
 			p.print(n.Lhs, blank, _Define, blank)

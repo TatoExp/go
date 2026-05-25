@@ -811,6 +811,19 @@ func (o *orderState) stmt(n ir.Node) {
 		ir.OTAILCALL:
 		o.out = append(o.out, n)
 
+	case ir.OTRY:
+		n := n.(*ir.UnaryExpr)
+		t := o.markTemp()
+		if inlcall, ok := n.X.(*ir.InlinedCallExpr); ok {
+			o.init(inlcall)
+			o.stmtList(inlcall.Body)
+		} else {
+			o.init(n.X)
+			o.call(n.X)
+		}
+		o.out = append(o.out, n)
+		o.popTemp(t)
+
 	// Special: handle call arguments.
 	case ir.OCALLFUNC, ir.OCALLINTER:
 		n := n.(*ir.CallExpr)

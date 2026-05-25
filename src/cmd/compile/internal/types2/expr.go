@@ -1131,6 +1131,40 @@ func (check *Checker) exprInternal(T *target, x *operand, e syntax.Expr, hint Ty
 		x.mode_ = commaok
 		x.typ_ = T
 
+	case *syntax.TryExpr:
+		// Type check the inner expression without forcing single-value context.
+		check.rawExpr(nil, x, e.X, nil, false)
+		if x.mode() == invalid {
+			goto Error
+		}
+		// Must be a function call returning (... , error).
+		results, ok := x.typ().(*Tuple)
+		if !ok || results.Len() == 0 {
+			check.error(e, InvalidSyntaxTree, "try operator requires function call with return values")
+			goto Error
+		}
+		// Check that the last result is an error.
+		last := results.vars[results.Len()-1]
+		if !Identical(last.typ, universeError) {
+			check.error(e, InvalidSyntaxTree, "try operator requires function call returning error as last result")
+			goto Error
+		}
+		// Check that enclosing function return types match.
+		if sig := check.sig; sig != nil {
+			if len(sig.results.vars) != results.Len() {
+				check.error(e, InvalidSyntaxTree, "try operator: result count mismatch")
+				goto Error
+			}
+			for i := 0; i < results.Len(); i++ {
+				if !Identical(sig.results.vars[i].typ, results.vars[i].typ) {
+					check.error(e, InvalidSyntaxTree, "try operator: result type mismatch")
+					goto Error
+				}
+			}
+		}
+		x.mode_ = novalue
+		return statement
+
 	case *syntax.TypeSwitchGuard:
 		// x.(type) expressions are handled explicitly in type switches
 		check.error(e, InvalidSyntaxTree, "use of .(type) outside type switch")

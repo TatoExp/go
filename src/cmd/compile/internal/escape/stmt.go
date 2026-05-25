@@ -175,6 +175,15 @@ func (e *escape) stmt(n ir.Node) {
 		ks := e.addrs(n.Lhs)
 		e.call(ks, n.Rhs[0])
 		e.reassigned(ks, n)
+	case ir.OTRY:
+		n := n.(*ir.UnaryExpr)
+		results := e.curfn.Type().Results()
+		dsts := make([]ir.Node, len(results))
+		for i, res := range results {
+			dsts[i] = res.Nname.(*ir.Name)
+		}
+		ks := e.addrs(dsts)
+		e.call(ks, n.X)
 	case ir.ORETURN:
 		n := n.(*ir.ReturnStmt)
 		results := e.curfn.Type().Results()

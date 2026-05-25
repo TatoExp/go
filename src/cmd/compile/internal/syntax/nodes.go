@@ -221,6 +221,12 @@ type (
 		expr
 	}
 
+	// X?
+	TryExpr struct {
+		X Expr
+		expr
+	}
+
 	// X.(type)
 	// Lhs := X.(type)
 	TypeSwitchGuard struct {
