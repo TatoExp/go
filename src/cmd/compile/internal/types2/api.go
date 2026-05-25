@@ -121,6 +121,10 @@ type Config struct {
 	// type-checked.
 	IgnoreFuncBodies bool
 
+	// If AllowUnusedVars is set, variables that are declared but
+	// not used are allowed (no "declared and not used" error).
+	AllowUnusedVars bool
+
 	// If FakeImportC is set, `import "C"` (for packages requiring Cgo)
 	// declares an empty "C" package and errors are omitted for qualified
 	// identifiers referring to package C (which won't find an object).

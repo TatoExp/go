@@ -54,6 +54,7 @@ func checkFiles(m posMap, noders []*noder) (*types2.Package, *types2.Info, map[*
 		Context:            ctxt,
 		GoVersion:          base.Flag.Lang,
 		IgnoreBranchErrors: true, // parser already checked via syntax.CheckBranches mode
+		AllowUnusedVars:    base.Flag.AllowUnusedVars,
 		Importer:           &importer,
 		Sizes:              types2.SizesFor("gc", buildcfg.GOARCH),
 	}

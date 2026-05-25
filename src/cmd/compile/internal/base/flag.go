@@ -86,6 +86,7 @@ type CmdFlags struct {
 	CompilingRuntime bool      "flag:\"+\" help:\"compiling runtime\""
 
 	// Longer names
+	AllowUnusedVars    bool         "help:\"allow variables that are declared but not used\""
 	AsmHdr             string       "help:\"write assembly header to `file`\""
 	ASan               bool         "help:\"build code compatible with C/C++ address sanitizer\""
 	Bench              string       "help:\"append benchmark times to `file`\""

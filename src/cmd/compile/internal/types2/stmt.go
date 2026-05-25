@@ -68,7 +68,9 @@ func (check *Checker) usage(scope *Scope) {
 		return cmpPos(a.pos, b.pos)
 	})
 	for _, v := range unused {
-		check.softErrorf(v.pos, UnusedVar, "declared and not used: %s", v.name)
+		if !check.conf.AllowUnusedVars {
+			check.softErrorf(v.pos, UnusedVar, "declared and not used: %s", v.name)
+		}
 	}
 
 	for _, scope := range scope.children {
@@ -835,8 +837,11 @@ func (check *Checker) typeSwitchStmt(inner stmtContext, s *syntax.SwitchStmt, gu
 			}
 			check.usedVars[v] = true // avoid usage error when checking entire function
 		}
-		if !used {
+	if !used {
+		if !check.conf.AllowUnusedVars {
 			check.softErrorf(lhs, UnusedVar, "%s declared and not used", lhs.Value)
 		}
 	}
+}
+
 }
